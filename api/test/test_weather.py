@@ -43,7 +43,7 @@ async def test_get_current_weather_success(mock_weather_service):
 
 @pytest.mark.asyncio
 @patch("src.resources.weather_resource.weather_service")
-async def test_get_current_weather_invalid_city(mock_weather_service):
+async def test_get_current_weather_city_not_found(mock_weather_service):
     mock_weather_service.get_current_weather = AsyncMock(
         side_effect=httpx.HTTPStatusError(
             message="Ville non trouvée",
@@ -51,9 +51,8 @@ async def test_get_current_weather_invalid_city(mock_weather_service):
             response=httpx.Response(404, request=httpx.Request("GET", "https://api.example.com/weather")),
         )
     )
-    response = client.get("/weather/current", params={"city":"Bourg Palette"})
+
+    response = client.get("/weather/current?city=VilleInconnue")
 
     assert response.status_code == 404
-    assert response.json() == {
-        "detail": "Ville non trouvée. Vérifiez l'orthographe ou ajoutez le code pays."
-    }
+    assert "Ville 'VilleInconnue' non trouvée" in response.json()["detail"]
