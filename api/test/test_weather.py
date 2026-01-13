@@ -1,9 +1,14 @@
 from fastapi.testclient import TestClient
 from main import app
 import pytest
+from src.resources.weather_resource import router
 import asyncio
+from fastapi import FastAPI
 from unittest.mock import AsyncMock, patch
 
+
+app = FastAPI()
+app.include_router(router)
 client = TestClient(app)
 def test_debug_routes():
     paths = sorted([r.path for r in app.routes])
