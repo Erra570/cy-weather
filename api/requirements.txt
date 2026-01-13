@@ -65,6 +65,7 @@ markupsafe==3.0.3
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
+prometheus-fastapi-instrumentator 
 pydantic==2.12.5
     # via
     #   fastapi
