@@ -5,6 +5,7 @@ from src.resources.weather_resource import router
 import asyncio
 from fastapi import FastAPI
 from unittest.mock import AsyncMock, patch
+import httpx
 
 
 app = FastAPI()
@@ -40,10 +41,19 @@ async def test_get_current_weather_success(mock_weather_service):
     assert response.json() == mock_response
 
 
-def test_get_current_weather_invalid_city():
-    response = client.get(
-        "/weather/current",
-        params={"city": "Bourg Palette"},
+@pytest.mark.asyncio
+@patch("src.resources.weather_resource.weather_service")
+async def test_get_current_weather_invalid_city(mock_weather_service):
+    mock_weather_service.get_current_weather = AsyncMock(
+        side_effect=httpx.HTTPStatusError(
+            message="Ville non trouvée",
+            request=httpx.Request("GET", "https://api.example.com/weather"),
+            response=httpx.Response(404, request=httpx.Request("GET", "https://api.example.com/weather")),
+        )
     )
+    response = client.get("/weather/current", params={"city":"Bourg Palette"})
 
     assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Ville non trouvée. Vérifiez l'orthographe ou ajoutez le code pays."
+    }
